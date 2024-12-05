@@ -1,11 +1,13 @@
 // App.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
 import HabitsScreen from './screens/HabitsScreen';
 import HabOrRemScreen from './screens/HabOrRemScreen';
 import RemindersScreen from './screens/RemindersScreen';
+import TimerOrCheckScreen from './screens/TimerOrCheckScreen';
+import AddCheckHabitScreen from './screens/AddCheckHabitScreen';
 
 // Create a Stack Navigator instance
 const Stack = createStackNavigator();
@@ -55,7 +57,7 @@ function App() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
         {/* Home Screen with all props passed to handle habits and reminders */}
-        <Stack.Screen name="Home">
+        <Stack.Screen name="Home" options={{ headerShown: false }}>
           {props => (
             <HomeScreen
               {...props}
@@ -94,10 +96,24 @@ function App() {
               habits={habits}
               toggleHabitCompletion={toggleHabitCompletion}
               handleHabitNameChange={handleHabitNameChange}
+              addHabit={addHabit}
+              addReminder={addReminder}
             />
           )}
         </Stack.Screen>
+        <Stack.Screen name="TimerOrCheckScreen">
+          {props => (
+            <TimerOrCheckScreen {...props} />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="AddCheckHabitScreen">
+          {props => (
+            <AddCheckHabitScreen {...props} />
+          )}
+        </Stack.Screen>
+
       </Stack.Navigator>
+
     </NavigationContainer>
   );
 }
