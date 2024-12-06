@@ -8,6 +8,7 @@ import HabOrRemScreen from './screens/HabOrRemScreen';
 import RemindersScreen from './screens/RemindersScreen';
 import TimerOrCheckScreen from './screens/TimerOrCheckScreen';
 import AddCheckHabitScreen from './screens/AddCheckHabitScreen';
+import AddRemScreen from './screens/AddRemScreen';
 
 // Create a Stack Navigator instance
 const Stack = createStackNavigator();
@@ -111,6 +112,7 @@ function App() {
             <AddCheckHabitScreen {...props} />
           )}
         </Stack.Screen>
+        <Stack.Screen name="AddRem" component={AddRemScreen} />
 
       </Stack.Navigator>
 

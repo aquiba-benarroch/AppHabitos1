@@ -122,6 +122,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import ProgressCircle from '../components/ProgressCircle';
 import HabitList from '../components/HabitList';
+import BottomNav from '../components/BottomNav';
+import AddButton from '../components/AddButton';
+
 
 function HomeScreen({
   navigation,
@@ -215,12 +218,10 @@ function HomeScreen({
       </ScrollView>
 
       {/* Botón flotante para agregar */}
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => navigation.navigate('HabOrRem')}
-      >
-        <Text style={styles.addButtonText}>+</Text>
-      </TouchableOpacity>
+      <AddButton onPress={() => navigation.navigate('HabOrRem')} />
+
+      <BottomNav />
+
     </View>
   );
 }
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 80, // Se coloca justo arriba de la barra de navegación inferior
     right: 20,
     width: 56,
     height: 56,
@@ -292,6 +293,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 32,
     fontWeight: 'bold',
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around', // Distribuye los elementos uniformemente
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+    backgroundColor: '#f9f9f9',
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+  },
+  navItem: {
+    alignItems: 'center',
+  },
+  navLabel: {
+    fontSize: 12,
+    color: '#333',
+    marginTop: 4,
   },
 });
 

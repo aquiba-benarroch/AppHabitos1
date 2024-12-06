@@ -1,6 +1,10 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import BottomNav from '../components/BottomNav';
+import AddButton from '../components/AddButton';
+import AddRemScreen from './AddRemScreen';
+import { useNavigation } from '@react-navigation/native';
 
 function RemindersScreen() {
   // Datos de ejemplo para la lista de tareas
@@ -18,7 +22,7 @@ function RemindersScreen() {
       </View>
     </View>
   );
-
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
       {/* Encabezado */}
@@ -37,25 +41,9 @@ function RemindersScreen() {
       />
 
       {/* Botón flotante */}
-      <TouchableOpacity style={styles.fab} onPress={() => alert('Agregar tarea')}>
-        <Ionicons name="add" size={24} color="white" />
-      </TouchableOpacity>
-
+      <AddButton onPress={() => navigation.navigate('AddRem')} />
       {/* Barra de navegación inferior */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="calendar" size={24} color="black" />
-          <Text style={styles.navLabel}>Today</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="star" size={24} color="black" />
-          <Text style={styles.navLabel}>Habits</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="time" size={24} color="black" />
-          <Text style={styles.navLabel}>Day Planner</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNav />
     </View>
   );
 }
