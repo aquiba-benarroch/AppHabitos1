@@ -1,47 +1,60 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import BottomNav from '../components/BottomNav';
 import AddButton from '../components/AddButton';
-import AddRemScreen from './AddRemScreen';
 import { useNavigation } from '@react-navigation/native';
 
-function RemindersScreen() {
-  // Datos de ejemplo para la lista de tareas
-  const tasks = [
-    { hour: '9:00', title: 'Hacer tarea !!!', duration: '1 hora' },
-    // Agrega más tareas si lo necesitas
-  ];
-
-  const renderTask = ({ item }) => (
-    <View style={styles.taskContainer}>
-      <Text style={styles.hour}>{item.hour}</Text>
-      <View>
-        <Text style={styles.taskTitle}>{item.title}</Text>
-        <Text style={styles.taskDuration}>{`Duración: ${item.duration}`}⁠</Text>
-      </View>
-    </View>
-  );
+function RemindersScreen({ reminders }) {
   const navigation = useNavigation();
+
+  const renderTask = ({ item, index }) => (
+    <TouchableOpacity
+      onPress={() =>
+        navigation.navigate('AddRem', { editingReminder: item, index })
+      }
+    >
+      <View style={styles.taskContainer}>
+        <Text style={styles.hour}>
+          {item.time ? item.time.split(':').slice(0, 2).join(':') : 'Sin hora'}
+        </Text>
+        <View>
+          <Text style={styles.taskTitle}>{item.name || 'Sin nombre'}</Text>
+          <Text style={styles.taskDays}>
+            {item.days && item.days.length > 0
+              ? `Días: ${item.days.join(', ')}`
+              : 'Sin días seleccionados'}
+          </Text>
+          <Text style={styles.taskDuration}>
+            {item.startDate && item.endDate
+              ? `Duración: ${item.startDate} - ${item.endDate}`
+              : 'Duración no especificada'}
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+  
+
   return (
     <View style={styles.container}>
       {/* Encabezado */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Hoy</Text>
+        <Text style={styles.headerTitle}>Recordatorios</Text>
       </View>
 
-      {/* Lista de tareas */}
+      {/* Lista de recordatorios */}
       <FlatList
-        data={tasks}
+        data={reminders || []} // Asegúrate de que reminders no sea null o undefined
         renderItem={renderTask}
         keyExtractor={(item, index) => index.toString()}
         ListEmptyComponent={() => (
-          <Text style={styles.noTasks}>No hay tareas programadas</Text>
+          <Text style={styles.noTasks}>No hay recordatorios programados</Text>
         )}
       />
 
       {/* Botón flotante */}
       <AddButton onPress={() => navigation.navigate('AddRem')} />
+
       {/* Barra de navegación inferior */}
       <BottomNav />
     </View>
@@ -79,6 +92,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  taskDays: {
+    fontSize: 14,
+    color: '#666',
+  },
   taskDuration: {
     fontSize: 14,
     color: '#666',
@@ -88,33 +105,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: '#666',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 80,
-    right: 16,
-    backgroundColor: '#007BFF',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    backgroundColor: '#f9f9f9',
-  },
-  navItem: {
-    alignItems: 'center',
-  },
-  navLabel: {
-    fontSize: 12,
-    color: '#333',
   },
 });
 

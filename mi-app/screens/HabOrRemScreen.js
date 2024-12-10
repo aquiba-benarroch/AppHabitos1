@@ -1,24 +1,34 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import AddHabitOrReminder from '../components/AddHabitOrReminder';
 
-
-function HabOrRemScreen({ navigation, habits, reminders, addHabit, addReminder, toggleHabitCompletion, handleHabitNameChange }) { 
+function HabOrRemScreen({ navigation, addHabit, addReminder }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.questionText}>¿Quieres agregar un hábito o un recordatorio para hoy?</Text>
-      
-      <TouchableOpacity style={styles.button} onPress={() => {
-          addHabit();
-          navigation.navigate('TimerOrCheckScreen');
-        }}>
+      <Text style={styles.questionText}>
+        ¿Quieres agregar un hábito o un recordatorio para hoy?
+      </Text>
+
+      {/* Botón para agregar un hábito */}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          navigation.navigate('TimerOrCheckScreen', {
+            onSave: addHabit, // Pasar la función para guardar el hábito
+          });
+        }}
+      >
         <Text style={styles.buttonText}>Agregar Hábito</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={() => {
-          addReminder();
-          navigation.navigate('TimerOrCheckScreen');
-        }}>
+      {/* Botón para agregar un recordatorio */}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          navigation.navigate('AddRem', {
+            onSave: addReminder, // Pasar la función para guardar el recordatorio
+          });
+        }}
+      >
         <Text style={styles.buttonText}>Agregar Recordatorio</Text>
       </TouchableOpacity>
     </View>
