@@ -1,16 +1,26 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
-function TimerOrCheckScreen({ navigation }) {
+function TimerOrCheckScreen({ navigation, route }) {
+  const { onSave } = route.params; // Recibir la función para guardar el hábito
+
   return (
     <View style={styles.container}>
       <Text style={styles.questionText}>¿Cómo vas a evaluar tu progreso?</Text>
-      
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AddCheckHabitScreen')}>
+
+      {/* Opción para agregar un hábito con SÍ o NO */}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('AddCheckHabitScreen', { onSave })}
+      >
         <Text style={styles.buttonText}>Con un SÍ o NO</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AddTimerHabitScreen')}>
+      {/* Opción para agregar un hábito con un temporizador */}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('AddTimerHabitScreen', { onSave })}
+      >
         <Text style={styles.buttonText}>Con un timer</Text>
       </TouchableOpacity>
     </View>

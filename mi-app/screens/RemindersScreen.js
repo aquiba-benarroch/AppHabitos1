@@ -21,6 +21,7 @@ function RemindersScreen({ reminders, deleteReminder }) {
           {item.time
             ? item.time.split(':').slice(0, 2).join(':') // Mostrar solo horas y minutos
             : 'Sin hora'}
+
         </Text>
         <View>
           <Text style={styles.taskTitle}>{item.name || 'Sin nombre'}</Text>
@@ -29,6 +30,7 @@ function RemindersScreen({ reminders, deleteReminder }) {
               ? `Días: ${item.days.join(', ')}`
               : 'Sin días seleccionados'}
           </Text>
+
           <Text style={styles.taskDate}>
             {item.selectedDate
               ? `Fecha: ${new Date(item.selectedDate).toLocaleDateString()}`
@@ -77,6 +79,7 @@ function RemindersScreen({ reminders, deleteReminder }) {
       />
 
       <AddButton onPress={() => navigation.navigate('AddRem')} />
+
       <BottomNav />
     </View>
   );
@@ -94,6 +97,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ddd',
     justifyContent: 'space-between',
   },
+
   deleteButton: { padding: 5 },
   taskContent: { flex: 1 },
   hour: { fontSize: 18, marginRight: 16, fontWeight: 'bold', color: '#333' },
@@ -101,6 +105,7 @@ const styles = StyleSheet.create({
   taskDays: { fontSize: 14, color: '#666' },
   taskDate: { fontSize: 14, color: '#666' },
   noTasks: { textAlign: 'center', marginTop: 16, fontSize: 16, color: '#666' },
+
 });
 
 export default RemindersScreen;

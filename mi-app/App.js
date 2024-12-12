@@ -17,7 +17,7 @@ function App() {
   const [reminders, setReminders] = useState([]);
 
   const addHabit = (newHabit) => {
-    setHabits([...habits, newHabit]);
+    setHabits((prevHabits) => [...prevHabits, newHabit]); // Agregar el hábito al estado global
   };
   
   // Función para convertir tiempo a minutos totales
@@ -47,6 +47,7 @@ function App() {
   };
   
   // Función para agregar un recordatorio
+
   const addReminder = (newReminder) => {
     setReminders((prevReminders) => {
       const updatedReminders = [...prevReminders, newReminder];
@@ -128,7 +129,7 @@ function App() {
               reminders={reminders} 
               deleteReminder={deleteReminder} 
             />
-          )}
+          )}   
         </Stack.Screen>
 
         <Stack.Screen name="HabOrRem">
