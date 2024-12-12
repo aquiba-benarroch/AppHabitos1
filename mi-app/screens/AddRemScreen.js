@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,15 +10,43 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-const AddRemScreen = ({ navigation, addReminder }) => {
+const AddRemScreen = ({ navigation, route, addReminder, editReminder }) => {
   const [reminderName, setReminderName] = useState("");
   const [time, setTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [selectedDays, setSelectedDays] = useState([]);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+  // Validar fecha
+  const validateDate = (date) =>
+    date instanceof Date && !isNaN(date) ? date : new Date();
+
+  // Validar hora
+  const validateTime = (timeString) => {
+    if (!timeString) return new Date();
+    const [hours, minutes] = timeString.split(":").map(Number);
+    const validTime = new Date();
+    validTime.setHours(hours || 0, minutes || 0, 0, 0);
+    return validTime;
+  };
+
+  useEffect(() => {
+    if (route.params?.editingReminder) {
+      const { name, time, days, selectedDate } = route.params.editingReminder;
+
+      setReminderName(name || "");
+      setSelectedDays(days || []);
+      setTime(validateTime(time)); // Validar y configurar la hora
+      setSelectedDate(selectedDate ? new Date(selectedDate) : new Date()); // Validar y configurar la fecha
+    } else {
+      // Valores predeterminados
+      setReminderName("");
+      setSelectedDays([]);
+      setTime(new Date());
+      setSelectedDate(new Date());
+    }
+  }, [route.params?.editingReminder]);
 
   const toggleDay = (day) => {
     setSelectedDays((prev) =>
@@ -31,24 +59,30 @@ const AddRemScreen = ({ navigation, addReminder }) => {
       Alert.alert("Error", "El nombre del recordatorio no puede estar vacío.");
       return;
     }
-
-    addReminder({
+  
+    const newReminder = {
       name: reminderName,
-      time: time.toLocaleTimeString(),
+      time: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true }), // Asegura el formato correcto
       days: selectedDays,
-      startDate,
-      endDate,
-    });
-
-    navigation.goBack();
+      selectedDate: selectedDate.toISOString(),
+    };
+  
+    if (route.params?.editingReminder) {
+      editReminder(newReminder, route.params.index);
+    } else {
+      addReminder(newReminder);
+    }
+  
+    navigation.navigate("Reminders");
   };
+  
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.label}>Nombre del recordatorio:</Text>
       <TextInput
         style={styles.input}
-        placeholder="Escribe el nombre del recordatorio"
+        placeholder="Escribe tu recordatorio"
         value={reminderName}
         onChangeText={setReminderName}
       />
@@ -59,8 +93,7 @@ const AddRemScreen = ({ navigation, addReminder }) => {
         style={styles.timeBox}
       >
         <Text style={styles.timeText}>
-          {time.getHours().toString().padStart(2, "0")}:
-          {time.getMinutes().toString().padStart(2, "0")}
+          {time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </Text>
       </TouchableOpacity>
       {showTimePicker && (
@@ -71,14 +104,43 @@ const AddRemScreen = ({ navigation, addReminder }) => {
           display="spinner"
           onChange={(event, selectedTime) => {
             setShowTimePicker(false);
-            if (selectedTime) setTime(selectedTime);
+            if (selectedTime) setTime(validateDate(selectedTime));
+          }}
+        />
+      )}
+
+      <Text style={styles.label}>Fecha:</Text>
+      <TouchableOpacity
+        onPress={() => setShowDatePicker(true)}
+        style={styles.dateBox}
+      >
+        <Text style={styles.dateText}>
+          {selectedDate.toLocaleDateString()}
+        </Text>
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker
+          value={validateDate(selectedDate)}
+          mode="date"
+          display="default"
+          onChange={(event, date) => {
+            setShowDatePicker(false);
+            if (date) setSelectedDate(validateDate(date));
           }}
         />
       )}
 
       <Text style={styles.label}>Frecuencia:</Text>
       <View style={styles.daysContainer}>
-        {days.map((day) => (
+        {[
+          "Lunes",
+          "Martes",
+          "Miércoles",
+          "Jueves",
+          "Viernes",
+          "Sábado",
+          "Domingo",
+        ].map((day) => (
           <TouchableOpacity
             key={day}
             style={[
@@ -97,22 +159,6 @@ const AddRemScreen = ({ navigation, addReminder }) => {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
-
-      <Text style={styles.label}>Duración:</Text>
-      <View style={styles.dateContainer}>
-        <TextInput
-          style={styles.dateInput}
-          placeholder="Fecha de inicio (yyyy-mm-dd)"
-          value={startDate}
-          onChangeText={setStartDate}
-        />
-        <TextInput
-          style={styles.dateInput}
-          placeholder="Fecha de fin (yyyy-mm-dd)"
-          value={endDate}
-          onChangeText={setEndDate}
-        />
       </View>
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSaveReminder}>
@@ -140,6 +186,14 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   timeText: { fontSize: 18, textAlign: "center" },
+  dateBox: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  dateText: { fontSize: 18, textAlign: "center" },
   daysContainer: { flexDirection: "row", flexWrap: "wrap", marginBottom: 15 },
   dayButton: {
     padding: 10,
@@ -152,19 +206,6 @@ const styles = StyleSheet.create({
   dayButtonSelected: { backgroundColor: "#6200ee" },
   dayButtonText: { color: "#000" },
   dayButtonTextSelected: { color: "#fff" },
-  dateContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 15,
-  },
-  dateInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
-  },
   saveButton: {
     backgroundColor: "#00cc00",
     padding: 15,
