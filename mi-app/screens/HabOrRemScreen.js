@@ -4,11 +4,9 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 function HabOrRemScreen({ navigation, addHabit, addReminder }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.questionText}>
-        ¿Quieres agregar un hábito o un recordatorio para hoy?
-      </Text>
 
-      {/* Botón para agregar un hábito */}
+      <Text style={styles.questionText}>¿Quieres agregar un hábito o un recordatorio para hoy?</Text>
+
       <TouchableOpacity
         style={styles.button}
         onPress={() => {
@@ -20,14 +18,14 @@ function HabOrRemScreen({ navigation, addHabit, addReminder }) {
         <Text style={styles.buttonText}>Agregar Hábito</Text>
       </TouchableOpacity>
 
-      {/* Botón para agregar un recordatorio */}
       <TouchableOpacity
         style={styles.button}
-        onPress={() => {
+        onPress={() =>
           navigation.navigate('AddRem', {
-            onSave: addReminder, // Pasar la función para guardar el recordatorio
-          });
-        }}
+            editingReminder: null,
+            index: null,
+          })
+        }
       >
         <Text style={styles.buttonText}>Agregar Recordatorio</Text>
       </TouchableOpacity>

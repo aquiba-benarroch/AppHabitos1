@@ -15,19 +15,37 @@ const AddRemScreen = ({ navigation, route, addReminder, editReminder }) => {
   const [time, setTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false); // Agregado estado para showTimePicker
   const [selectedDays, setSelectedDays] = useState([]);
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Validar fecha
+  const validateDate = (date) =>
+    date instanceof Date && !isNaN(date) ? date : new Date();
+
+  // Validar hora
+  const validateTime = (timeString) => {
+    if (!timeString) return new Date();
+    const [hours, minutes] = timeString.split(":").map(Number);
+    const validTime = new Date();
+    validTime.setHours(hours || 0, minutes || 0, 0, 0);
+    return validTime;
+  };
 
   useEffect(() => {
     if (route.params?.editingReminder) {
-      const { name, time, days, startDate, endDate } = route.params.editingReminder;
+      const { name, time, days, selectedDate } = route.params.editingReminder;
+
       setReminderName(name || "");
-      setTime(new Date(`1970-01-01T${time || "00:00"}Z`));
       setSelectedDays(days || []);
-      setStartDate(new Date(startDate));
-      setEndDate(new Date(endDate));
+      setTime(validateTime(time)); // Validar y configurar la hora
+      setSelectedDate(selectedDate ? new Date(selectedDate) : new Date()); // Validar y configurar la fecha
+    } else {
+      // Valores predeterminados
+      setReminderName("");
+      setSelectedDays([]);
+      setTime(new Date());
+      setSelectedDate(new Date());
+
     }
   }, [route.params?.editingReminder]);
 
@@ -42,23 +60,24 @@ const AddRemScreen = ({ navigation, route, addReminder, editReminder }) => {
       Alert.alert("Error", "El nombre del recordatorio no puede estar vacío.");
       return;
     }
-
+  
     const newReminder = {
       name: reminderName,
-      time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), // Cambia el formato de la hora
+      time: time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true }), // Asegura el formato correcto
       days: selectedDays,
-      startDate: startDate.toLocaleDateString(),
-      endDate: endDate.toLocaleDateString(),
+      selectedDate: selectedDate.toISOString(),
     };
+  
 
     if (route.params?.editingReminder) {
       editReminder(newReminder, route.params.index);
     } else {
       addReminder(newReminder);
     }
-
-    navigation.goBack();
+  
+    navigation.navigate("Reminders");
   };
+  
 
   return (
     <ScrollView style={styles.container}>
@@ -76,8 +95,7 @@ const AddRemScreen = ({ navigation, route, addReminder, editReminder }) => {
         style={styles.timeBox}
       >
         <Text style={styles.timeText}>
-          {time.getHours().toString().padStart(2, "0")}:
-          {time.getMinutes().toString().padStart(2, "0")}
+          {time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </Text>
       </TouchableOpacity>
       {showTimePicker && (
@@ -88,14 +106,44 @@ const AddRemScreen = ({ navigation, route, addReminder, editReminder }) => {
           display="spinner"
           onChange={(event, selectedTime) => {
             setShowTimePicker(false);
-            if (selectedTime) setTime(selectedTime);
+            if (selectedTime) setTime(validateDate(selectedTime));
+          }}
+        />
+      )}
+
+      <Text style={styles.label}>Fecha:</Text>
+      <TouchableOpacity
+        onPress={() => setShowDatePicker(true)}
+        style={styles.dateBox}
+      >
+        <Text style={styles.dateText}>
+          {selectedDate.toLocaleDateString()}
+        </Text>
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker
+          value={validateDate(selectedDate)}
+          mode="date"
+          display="default"
+          onChange={(event, date) => {
+            setShowDatePicker(false);
+            if (date) setSelectedDate(validateDate(date));
           }}
         />
       )}
 
       <Text style={styles.label}>Frecuencia:</Text>
       <View style={styles.daysContainer}>
-        {["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"].map((day) => (
+        {[
+          "Lunes",
+          "Martes",
+          "Miércoles",
+          "Jueves",
+          "Viernes",
+          "Sábado",
+          "Domingo",
+        ].map((day) => (
+
           <TouchableOpacity
             key={day}
             style={[
@@ -116,43 +164,6 @@ const AddRemScreen = ({ navigation, route, addReminder, editReminder }) => {
         ))}
       </View>
 
-      <Text style={styles.label}>Duración:</Text>
-      <View style={styles.dateContainer}>
-        <TouchableOpacity
-          onPress={() => setShowStartDatePicker(true)}
-          style={styles.dateInput}
-        >
-          <Text>{startDate.toLocaleDateString()}</Text>
-        </TouchableOpacity>
-        {showStartDatePicker && (
-          <DateTimePicker
-            value={startDate instanceof Date && !isNaN(startDate) ? startDate : new Date()}
-            mode="date"
-            display="default"
-            onChange={(event, selectedDate) => {
-                setShowStartDatePicker(false);
-                if (selectedDate) setStartDate(selectedDate);
-            }}
-            />
-        )}
-        <TouchableOpacity
-          onPress={() => setShowEndDatePicker(true)}
-          style={styles.dateInput}
-        >
-          <Text>{endDate.toLocaleDateString()}</Text>
-        </TouchableOpacity>
-        {showEndDatePicker && (
-          <DateTimePicker
-            value={endDate instanceof Date && !isNaN(endDate) ? endDate : new Date()}
-            mode="date"
-            display="default"
-            onChange={(event, selectedDate) => {
-                setShowEndDatePicker(false);
-                if (selectedDate) setEndDate(selectedDate);
-            }}
-            />
-        )}
-      </View>
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSaveReminder}>
         <Text style={styles.saveButtonText}>Guardar recordatorio</Text>
@@ -179,6 +190,14 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   timeText: { fontSize: 18, textAlign: "center" },
+  dateBox: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  dateText: { fontSize: 18, textAlign: "center" },
   daysContainer: { flexDirection: "row", flexWrap: "wrap", marginBottom: 15 },
   dayButton: {
     padding: 10,
@@ -191,21 +210,7 @@ const styles = StyleSheet.create({
   dayButtonSelected: { backgroundColor: "#6200ee" },
   dayButtonText: { color: "#000" },
   dayButtonTextSelected: { color: "#fff" },
-  dateContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 15,
-  },
-  dateInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+
   saveButton: {
     backgroundColor: "#00cc00",
     padding: 15,
