@@ -3,8 +3,8 @@ import { View, Text, StyleSheet } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 
 const ProgressCircle = ({ progress }) => {
-  const radius = 50; // Radio del círculo
-  const strokeWidth = 10; // Ancho del borde
+  const radius = 40; // Radio del círculo
+  const strokeWidth = 8; // Ancho del borde
   const circumference = 2 * Math.PI * radius; // Circunferencia
   const progressOffset = circumference - (progress / 100) * circumference; // Calcular el arco del progreso
 

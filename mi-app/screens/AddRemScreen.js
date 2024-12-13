@@ -13,7 +13,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 const AddRemScreen = ({ navigation, route, addReminder, editReminder }) => {
   const [reminderName, setReminderName] = useState("");
   const [time, setTime] = useState(new Date());
-  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false); // Agregado estado para showTimePicker
   const [selectedDays, setSelectedDays] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -45,6 +45,7 @@ const AddRemScreen = ({ navigation, route, addReminder, editReminder }) => {
       setSelectedDays([]);
       setTime(new Date());
       setSelectedDate(new Date());
+
     }
   }, [route.params?.editingReminder]);
 
@@ -67,19 +68,20 @@ const AddRemScreen = ({ navigation, route, addReminder, editReminder }) => {
       selectedDate: selectedDate.toISOString(),
     };
   
+
     if (route.params?.editingReminder) {
       editReminder(newReminder, route.params.index);
     } else {
       addReminder(newReminder);
     }
   
-    navigation.navigate("Reminders");
+    navigation.navigate("Home");
   };
   
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.label}>Nombre del recordatorio:</Text>
+      <Text style={styles.label}>Nombre del hábito:</Text>
       <TextInput
         style={styles.input}
         placeholder="Escribe tu recordatorio"
@@ -141,6 +143,7 @@ const AddRemScreen = ({ navigation, route, addReminder, editReminder }) => {
           "Sábado",
           "Domingo",
         ].map((day) => (
+
           <TouchableOpacity
             key={day}
             style={[
@@ -160,6 +163,7 @@ const AddRemScreen = ({ navigation, route, addReminder, editReminder }) => {
           </TouchableOpacity>
         ))}
       </View>
+
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSaveReminder}>
         <Text style={styles.saveButtonText}>Guardar recordatorio</Text>
@@ -206,6 +210,7 @@ const styles = StyleSheet.create({
   dayButtonSelected: { backgroundColor: "#6200ee" },
   dayButtonText: { color: "#000" },
   dayButtonTextSelected: { color: "#fff" },
+
   saveButton: {
     backgroundColor: "#00cc00",
     padding: 15,

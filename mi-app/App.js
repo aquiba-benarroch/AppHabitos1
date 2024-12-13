@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
@@ -9,6 +9,7 @@ import TimerOrCheckScreen from './screens/TimerOrCheckScreen';
 import AddCheckHabitScreen from './screens/AddCheckHabitScreen';
 import AddTimerHabitScreen from './screens/AddTimerHabitScreen';
 import AddRemScreen from './screens/AddRemScreen';
+import HabitsInfoScreen from './screens/HabitsInfoScreen';
 
 const Stack = createStackNavigator();
 
@@ -16,11 +17,84 @@ function App() {
   const [habits, setHabits] = useState([]);
   const [reminders, setReminders] = useState([]);
 
+  // Inicializar el progreso diario de los hábitos
+  const initializeDailyProgress = () => {
+    const today = new Date().toISOString().split("T")[0]; // Fecha actual en formato 'YYYY-MM-DD'
+
+    setHabits((prevHabits) =>
+      prevHabits.map((habit) => {
+        if (!habit.progress) {
+          habit.progress = {}; // Crear un registro de progreso si no existe
+        }
+        if (!habit.progress[today]) {
+          habit.progress[today] = false; // Establecer como incompleto si no existe para hoy
+        }
+        return habit;
+      })
+    );
+  };
+
+  useEffect(() => {
+    const initializeProgressAndCheckNewDay = async () => {
+      await initializeDailyProgress(); // Ejecutar al iniciar la app
+  
+      const checkNewDay = setInterval(async () => {
+        const currentDate = new Date().toISOString().split("T")[0];
+        const lastUpdateDate = await AsyncStorage.getItem("lastUpdateDate");
+  
+        if (lastUpdateDate !== currentDate) {
+          await initializeDailyProgress();
+          await AsyncStorage.setItem("lastUpdateDate", currentDate); // Actualizar la fecha de última verificación
+        }
+      }, 60 * 1000); // Cada minuto
+  
+      return () => clearInterval(checkNewDay); // Limpiar el intervalo al desmontar
+    };
+  
+    initializeProgressAndCheckNewDay();
+  }, []);
+
   const addHabit = (newHabit) => {
-    setHabits([...habits, newHabit]);
+    setHabits([
+      ...habits,
+      {
+        ...newHabit,
+        completionHistory: {}, // Inicializar el historial vacío
+      },
+    ]);
+  };
+
+  const toggleHabitCompletion = (habitIndex) => {
+    const selectedDateString = selectedDate.toISOString().split('T')[0];
+  
+    setHabits((prevHabits) =>
+      prevHabits.map((habit, index) => {
+        if (index === habitIndex) {
+          return {
+            ...habit,
+            completionHistory: {
+              ...habit.completionHistory,
+              [selectedDateString]: !habit.completionHistory?.[selectedDateString],
+            },
+          };
+        }
+        return habit;
+      })
+    );
   };
   
-  // Función para convertir tiempo a minutos totales
+  const editHabit = (updatedHabit, index) => {
+    setHabits((prevHabits) => {
+      const updatedHabits = [...prevHabits];
+      updatedHabits[index] = updatedHabit;
+      return updatedHabits;
+    });
+  };
+
+  const deleteHabit = (index) => {
+    setHabits((prevHabits) => prevHabits.filter((_, i) => i !== index));
+  };
+
   const parseTime = (time) => {
     if (!time) return 0;
   
@@ -47,6 +121,7 @@ function App() {
   };
   
   // Función para agregar un recordatorio
+
   const addReminder = (newReminder) => {
     setReminders((prevReminders) => {
       const updatedReminders = [...prevReminders, newReminder];
@@ -72,107 +147,92 @@ function App() {
     );
   };
 
-  const toggleHabitCompletion = (index) => {
-    const updatedHabits = habits.map((habit, i) => {
-      if (i === index) {
-        return { ...habit, completed: !habit.completed };
-      }
-      return habit;
-    });
-    setHabits(updatedHabits);
-  };
-
-  const handleHabitNameChange = (index, newName) => {
-    const updatedHabits = habits.map((habit, i) => {
-      if (i === index) {
-        return { ...habit, name: newName };
-      }
-      return habit;
-    });
-    setHabits(updatedHabits);
-  };
-
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
-      <Stack.Screen name="Home" options={{ headerShown: false }}>
-        {props => (
-          <HomeScreen
-            {...props}
-            habits={habits}
-            setHabits={setHabits} // Pasar la función para actualizar los hábitos
-            reminders={reminders}
-            addHabit={addHabit}
-            addReminder={addReminder}
-            toggleHabitCompletion={toggleHabitCompletion}
-            handleHabitNameChange={handleHabitNameChange}
-          />
-        )}
-      </Stack.Screen>
+        <Stack.Screen name="Home" options={{ headerShown: false }}>
+          {props => (
+            <HomeScreen
+              {...props}
+              habits={habits}
+              toggleHabitCompletion={toggleHabitCompletion} // Pasar la función para alternar el estado de completado
+              setHabits={setHabits}
+              reminders={reminders}
+              addReminder={addReminder}
+              addHabit={addHabit}
+            />
+          )}
+        </Stack.Screen>
 
         <Stack.Screen name="Habits">
           {props => (
             <HabitsScreen
               {...props}
               habits={habits}
-              toggleHabitCompletion={toggleHabitCompletion}
-              handleHabitNameChange={handleHabitNameChange}
+              deleteHabit={deleteHabit}
+            />
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="HabitsInfo" options={{ headerTitle: 'Información del Hábito' }}>
+          {(props) => (
+            <HabitsInfoScreen
+              {...props}
+              habits={habits}
+              editHabit={editHabit}
             />
           )}
         </Stack.Screen>
 
         <Stack.Screen name="Reminders">
           {props => (
-            <RemindersScreen 
-              {...props} 
-              reminders={reminders} 
-              deleteReminder={deleteReminder} 
+            <RemindersScreen
+              {...props}
+              reminders={reminders}
+              deleteReminder={deleteReminder}
             />
           )}
         </Stack.Screen>
 
         <Stack.Screen name="HabOrRem">
-        {props => (
-          <HabOrRemScreen
-            {...props}
-            addHabit={addHabit}
-            addReminder={addReminder}
-          />
-        )}
-      </Stack.Screen>
+          {props => (
+            <HabOrRemScreen
+              {...props}
+              addHabit={addHabit}
+              addReminder={addReminder}
+            />
+          )}
+        </Stack.Screen>
 
-      <Stack.Screen name="TimerOrCheckScreen">
-        {props => <TimerOrCheckScreen {...props} addHabit={addHabit} />}
-      </Stack.Screen>
+        <Stack.Screen name="TimerOrCheckScreen">
+          {props => <TimerOrCheckScreen {...props} addHabit={addHabit} />}
+        </Stack.Screen>
 
-      <Stack.Screen name="AddCheckHabitScreen">
-        {props => (
-          <AddCheckHabitScreen
-            {...props}
-            addHabit={newHabit => {
-              addHabit(newHabit);
-              props.navigation.navigate('Home');
-            }}
-          />
-        )}
-      </Stack.Screen>
+        <Stack.Screen name="AddCheckHabitScreen">
+          {props => (
+            <AddCheckHabitScreen
+              {...props}
+              addHabit={(newHabit) => {
+                addHabit(newHabit);
+                props.navigation.navigate('Home');
+              }}
+            />
+          )}
+        </Stack.Screen>
 
-      <Stack.Screen name="AddTimerHabitScreen">
-      {props => (
-        <AddTimerHabitScreen
-          {...props}
-          addHabit={(newHabit) => {
-            addHabit({
-              ...newHabit,
-              completed: false, // Asegurar que cada nuevo hábito tenga esta propiedad
-            });
-            props.navigation.navigate('Home'); // Navega a HomeScreen
-          }}
-        />
-      )}
-    </Stack.Screen>
+        <Stack.Screen name="AddTimerHabitScreen">
+          {props => (
+            <AddTimerHabitScreen
+              {...props}
+              addHabit={(newHabit) => {
+                addHabit(newHabit);
+                props.navigation.navigate('Home');
+              }}
+            />
+          )}
+        </Stack.Screen>
 
-      <Stack.Screen name="AddRem">
+        <Stack.Screen name="AddRem">
           {props => (
             <AddRemScreen
             {...props}
@@ -180,8 +240,7 @@ function App() {
             editReminder={editReminder} // Pasar función para editar recordatorios
           />
           )}
-      </Stack.Screen>
-
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
