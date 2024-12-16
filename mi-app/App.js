@@ -174,16 +174,6 @@ function App() {
           )}
         </Stack.Screen>
 
-        <Stack.Screen name="HabitsInfo" options={{ headerTitle: 'Información del Hábito' }}>
-          {(props) => (
-            <HabitsInfoScreen
-              {...props}
-              habits={habits}
-              editHabit={editHabit}
-            />
-          )}
-        </Stack.Screen>
-
         <Stack.Screen name="Reminders">
           {props => (
             <RemindersScreen
@@ -209,16 +199,52 @@ function App() {
         </Stack.Screen>
 
         <Stack.Screen name="AddCheckHabitScreen">
-          {props => (
-            <AddCheckHabitScreen
-              {...props}
-              addHabit={(newHabit) => {
-                addHabit(newHabit);
-                props.navigation.navigate('Home');
-              }}
-            />
-          )}
+          {props => {
+            const { editingHabit, index } = props.route.params || {}; // Verificar si se está editando un hábito
+
+            return (
+              <AddCheckHabitScreen
+                {...props}
+                addHabit={(newHabit) => {
+                  addHabit(newHabit); // Agregar un nuevo hábito
+                  props.navigation.navigate('Home');
+                }}
+                editHabit={(updatedHabit) => {
+                  if (editingHabit && index !== undefined) {
+                    editHabit(updatedHabit, index); // Editar un hábito existente
+                  }
+                  props.navigation.navigate('Home');
+                }}
+              />
+            );
+          }}
         </Stack.Screen>
+
+
+        <Stack.Screen name="HabitsInfo" options={{ headerTitle: 'Información del Hábito' }}>
+          {(props) => {
+            const { habit, index } = props.route.params || {}; // Extraer habit y index
+            return (
+              <HabitsInfoScreen
+                {...props}
+                habit={habit}
+                deleteHabit={() => {
+                  if (index !== undefined) {
+                    deleteHabit(index); // Pasar la función deleteHabit con índice
+                  }
+                }}
+                editHabit={(updatedHabit) => {
+                  if (index !== undefined) {
+                    editHabit(updatedHabit, index); // Pasar la función editHabit con índice
+                  }
+                }}
+              />
+            );
+          }}
+        </Stack.Screen>
+
+
+
 
         <Stack.Screen name="AddTimerHabitScreen">
           {props => (

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,12 +10,19 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-const AddCheckHabitScreen = ({ navigation, addHabit }) => {
-  const [habitName, setHabitName] = useState("");
-  const [description, setDescription] = useState("");
-  const [selectedDays, setSelectedDays] = useState([]);
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+const AddCheckHabitScreen = ({ navigation, addHabit, route, editHabit }) => {
+  const editingHabit = route.params?.editingHabit;
+  const habitIndex = route.params?.index;
+
+  const [habitName, setHabitName] = useState(editingHabit?.name || "");
+  const [description, setDescription] = useState(editingHabit?.description || "");
+  const [selectedDays, setSelectedDays] = useState(editingHabit?.days || []);
+  const [startDate, setStartDate] = useState(
+    editingHabit ? new Date(editingHabit.startDate) : new Date()
+  );
+  const [endDate, setEndDate] = useState(
+    editingHabit ? new Date(editingHabit.endDate) : new Date()
+  );
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
@@ -29,25 +36,31 @@ const AddCheckHabitScreen = ({ navigation, addHabit }) => {
 
   const handleSaveHabit = () => {
     if (!habitName.trim()) {
-      Alert.alert('Error', 'El nombre del hábito no puede estar vacío.');
+      Alert.alert("Error", "El nombre del hábito no puede estar vacío.");
       return;
     }
     if (!selectedDays.length) {
-      Alert.alert('Error', 'Debes seleccionar al menos un día.');
+      Alert.alert("Error", "Debes seleccionar al menos un día.");
       return;
     }
-  
-    const newHabit = {
+
+    const updatedHabit = {
       name: habitName,
       description,
       days: selectedDays.map((day) => day.toLowerCase()), // Convertir a minúsculas
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
-      completed: false,
+      startDate: startDate.toISOString().split("T")[0],
+      endDate: endDate.toISOString().split("T")[0],
+      completed: editingHabit?.completed || false, // Mantener el estado previo si está editando
+      completionHistory: editingHabit?.completionHistory || {}, // Mantener el historial previo
     };
-  
-    addHabit(newHabit);
-    navigation.navigate('Home', { showToday: true });
+
+    if (editingHabit) {
+      editHabit(updatedHabit, habitIndex); // Editar hábito existente
+    } else {
+      addHabit(updatedHabit); // Agregar nuevo hábito
+    }
+
+    navigation.navigate("Home", { showToday: true });
   };
 
   return (
@@ -130,7 +143,9 @@ const AddCheckHabitScreen = ({ navigation, addHabit }) => {
       )}
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSaveHabit}>
-        <Text style={styles.saveButtonText}>Guardar hábito</Text>
+        <Text style={styles.saveButtonText}>
+          {editingHabit ? "Guardar Cambios" : "Guardar Hábito"}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );
