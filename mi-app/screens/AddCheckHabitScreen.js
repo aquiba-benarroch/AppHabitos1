@@ -23,6 +23,8 @@ const AddCheckHabitScreen = ({ navigation, addHabit, route, editHabit }) => {
   const [endDate, setEndDate] = useState(
     editingHabit ? new Date(editingHabit.endDate) : new Date()
   );
+  endDate.setHours(23, 59, 59, 999);
+  
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 

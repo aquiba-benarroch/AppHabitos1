@@ -19,24 +19,27 @@ function HomeScreen({ navigation, route, habits: globalHabits, setHabits,reminde
 
   // Actualiza los hábitos filtrados cada vez que cambien los hábitos globales o la fecha seleccionada
   useEffect(() => {
-    const habitsForSelectedDay = (globalHabits || []).filter((habit) => {
-      const dayName = selectedDate.toLocaleString('es-ES', { weekday: 'long' }).toLowerCase();
-      const habitStartDate = new Date(habit.startDate);
-      const habitEndDate = new Date(habit.endDate);
+    const habitsForSelectedDay = (globalHabits || [])
+      .map((habit, index) => ({ ...habit, globalIndex: index })) // Añade el índice global
+      .filter((habit) => {
+        const dayName = selectedDate.toLocaleString('es-ES', { weekday: 'long' }).toLowerCase();
+        const habitStartDate = new Date(habit.startDate);
+        const habitEndDate = new Date(habit.endDate);
+        habitEndDate.setHours(23, 59, 59, 999);
   
-      // Verificar si la fecha seleccionada está dentro del rango del hábito
-      const isWithinDateRange =
-        selectedDate >= habitStartDate && selectedDate <= habitEndDate;
+        const isWithinDateRange =
+          selectedDate >= habitStartDate && selectedDate <= habitEndDate;
   
-      // Verificar si el día de la semana coincide
-      const isMatchingDay = habit.days
-        ?.map((day) => day.toLowerCase())
-        .includes(dayName);
+        const isMatchingDay = habit.days
+          ?.map((day) => day.toLowerCase())
+          .includes(dayName);
   
-      return isWithinDateRange && isMatchingDay;
-    });
+        return isWithinDateRange && isMatchingDay;
+      });
+  
     setFilteredHabits(habitsForSelectedDay);
   }, [globalHabits, selectedDate]);
+  
   
   useEffect(() => {
     const remindersForSelectedDay = (globalReminders || []).filter((reminder) => {
@@ -74,26 +77,26 @@ function HomeScreen({ navigation, route, habits: globalHabits, setHabits,reminde
 
   // Alternar el estado de completado de un hábito para la fecha seleccionada
   const toggleHabitCompletion = (habitIndex) => {
-    const selectedDateString = selectedDate.toISOString().split('T')[0]; // Convertir la fecha a formato de string (YYYY-MM-DD)
-
-    const updatedHabits = globalHabits.map((habit, index) => {
+    const selectedDateString = selectedDate.toISOString().split('T')[0]; // Fecha seleccionada como string
+  
+    setHabits((prevHabits) =>
+      prevHabits.map((habit, index) => {
         if (index === habitIndex) {
-            // Crear o actualizar el historial del hábito para la fecha seleccionada
-            const updatedCompletionHistory = {
-                ...habit.completionHistory,
-                [selectedDateString]: !habit.completionHistory?.[selectedDateString], // Alternar el estado de completado
-            };
-
-            return {
-                ...habit,
-                completionHistory: updatedCompletionHistory,
-            };
+          // Actualiza solo el hábito correcto
+          const updatedCompletionHistory = {
+            ...habit.completionHistory,
+            [selectedDateString]: !habit.completionHistory?.[selectedDateString],
+          };
+  
+          return {
+            ...habit,
+            completionHistory: updatedCompletionHistory,
+          };
         }
         return habit;
-    });
-
-    setHabits(updatedHabits);
-};
+      })
+    );
+  };  
 
   const renderHabitItem = ({ item, index }) => {
     const selectedDateString = selectedDate.toISOString().split('T')[0];
@@ -153,7 +156,7 @@ function HomeScreen({ navigation, route, habits: globalHabits, setHabits,reminde
       <Text style={styles.sectionTitle}>Recordatorios</Text>
 
       {/* Lista de recordatorios */}
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollViewContent, { paddingBottom: 65 }]}>
         {filteredReminders.length > 0 ? (
           filteredReminders.map((reminder, index) => (
             <View key={index} style={styles.reminderContainer}>

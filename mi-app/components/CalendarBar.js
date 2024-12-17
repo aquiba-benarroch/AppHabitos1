@@ -43,9 +43,9 @@ const styles = StyleSheet.create({
   calendarContainer: {
     flexDirection: 'row',
     paddingVertical: 5, // Ajustado para ocupar menos espacio vertical
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#fff',
   },
   dayItem: {
     alignItems: 'center',

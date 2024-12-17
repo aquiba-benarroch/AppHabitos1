@@ -2,20 +2,22 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import HabitItem from './HabitItem';
 
-const HabitList = ({ habits, onToggleCompletion, onHabitNameChange }) => {
+const HabitList = ({ habits, onToggleCompletion, selectedDate }) => {
   return (
     <View style={styles.habitList}>
-      {habits.map((habit, index) => (
-        <HabitItem 
-          key={index} 
-          habit={habit} 
-          onToggle={() => onToggleCompletion(index)} 
-          onNameChange={(newName) => onHabitNameChange(index, newName)} 
+      {habits.map((habit) => (
+        <HabitItem
+          key={habit.globalIndex} // Usa el índice global como clave
+          habit={habit}
+          selectedDate={selectedDate}
+          onToggle={() => onToggleCompletion(habit.globalIndex)} // Pasa el índice global
         />
       ))}
     </View>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   habitList: {

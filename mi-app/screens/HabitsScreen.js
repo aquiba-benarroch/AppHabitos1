@@ -52,7 +52,7 @@ const HabitsScreen = ({ habits, deleteHabit, editHabit }) => {
           <Text style={styles.noHabitsText}>No hay hábitos creados</Text>
         )}
       />
-      <AddButton onPress={() => navigation.navigate('TimerOrCheckScreen')} />
+      <AddButton onPress={() => navigation.navigate('AddCheckHabitScreen')} />
       <BottomNav />
     </View>
   );

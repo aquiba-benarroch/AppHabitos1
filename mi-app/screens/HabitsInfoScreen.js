@@ -5,23 +5,32 @@ import ProgressCircle from '../components/ProgressCircle';
 import BottomNav from '../components/BottomNav';
 
 const HabitsInfoScreen = ({ route, navigation }) => {
-  const { habit, deleteHabit, editHabit } = route.params; // Recibe el hábito, función para borrar y editar como parámetros
+  const { habit, deleteHabit, editHabit } = route.params;
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [calendarDays, setCalendarDays] = useState([]);
-  console.log('Habit:', habit);
-  console.log('EditHabit:', editHabit);
-  console.log('DeleteHabit:', deleteHabit);
-
 
   useEffect(() => {
     const habitStartDate = new Date(habit.startDate);
     const habitEndDate = new Date(habit.endDate);
 
+    const firstDayOfMonth = new Date(
+      selectedMonth.getFullYear(),
+      selectedMonth.getMonth(),
+      1
+    );
     const daysInMonth = new Date(
       selectedMonth.getFullYear(),
       selectedMonth.getMonth() + 1,
       0
     ).getDate();
+
+    const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Domingo
+    const today = new Date();
+
+    const emptyDaysBefore = Array.from({ length: startDayOfWeek }, () => ({
+      day: null,
+      status: 'inactive',
+    }));
 
     const days = Array.from({ length: daysInMonth }, (_, i) => {
       const currentDate = new Date(
@@ -31,45 +40,49 @@ const HabitsInfoScreen = ({ route, navigation }) => {
       );
 
       const dayString = currentDate.toISOString().split('T')[0];
-      const isWithinDateRange = currentDate >= habitStartDate && currentDate <= habitEndDate;
+      const isWithinDateRange =
+        currentDate >= habitStartDate && currentDate <= habitEndDate;
 
-      const dayName = currentDate.toLocaleString('es-ES', { weekday: 'long' }).toLowerCase();
-      const isHabitDay = habit.days?.map((day) => day.toLowerCase()).includes(dayName);
-
-      if (isWithinDateRange && isHabitDay) {
-        return {
-          day: i + 1,
-          status: habit.completionHistory?.[dayString] ? 'completed' : 'not_completed',
-        };
-      }
+      const dayName = currentDate
+        .toLocaleString('es-ES', { weekday: 'long' })
+        .toLowerCase();
+      const isHabitDay = habit.days
+        ?.map((day) => day.toLowerCase())
+        .includes(dayName);
 
       return {
         day: i + 1,
-        status: 'inactive', // Días fuera del rango o frecuencia del hábito
+        status:
+          isWithinDateRange && isHabitDay
+            ? habit.completionHistory?.[dayString]
+              ? 'completed'
+              : 'not_completed'
+            : 'inactive',
       };
     });
 
-    setCalendarDays(days);
+    const totalDays = emptyDaysBefore.length + days.length;
+    const emptyDaysAfter = Array.from(
+      { length: 7 - (totalDays % 7 || 7) },
+      () => ({ day: null, status: 'inactive' })
+    );
+
+    setCalendarDays([...emptyDaysBefore, ...days, ...emptyDaysAfter]);
   }, [habit, selectedMonth]);
 
   const handlePreviousMonth = () => {
-    const prevMonth = new Date(
-      selectedMonth.getFullYear(),
-      selectedMonth.getMonth() - 1,
-      1
+    setSelectedMonth(
+      new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - 1, 1)
     );
-    setSelectedMonth(prevMonth);
   };
 
   const handleNextMonth = () => {
-    const nextMonth = new Date(
-      selectedMonth.getFullYear(),
-      selectedMonth.getMonth() + 1,
-      1
+    setSelectedMonth(
+      new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 1)
     );
-    setSelectedMonth(nextMonth);
   };
 
+  // Cálculo de estadísticas de streak
   const getStreakStats = () => {
     let actualStreak = 0;
     let bestStreak = 0;
@@ -78,9 +91,7 @@ const HabitsInfoScreen = ({ route, navigation }) => {
     calendarDays.forEach((day) => {
       if (day.status === 'completed') {
         currentStreak += 1;
-        if (currentStreak > bestStreak) {
-          bestStreak = currentStreak;
-        }
+        if (currentStreak > bestStreak) bestStreak = currentStreak;
       } else if (day.status === 'not_completed') {
         currentStreak = 0;
       }
@@ -89,13 +100,22 @@ const HabitsInfoScreen = ({ route, navigation }) => {
     actualStreak = currentStreak;
 
     return {
-      completedDays: calendarDays.filter((day) => day.status === 'completed').length,
+      completedDays: calendarDays.filter((day) => day.status === 'completed')
+        .length,
       actualStreak,
       bestStreak,
     };
   };
 
   const { completedDays, actualStreak, bestStreak } = getStreakStats();
+
+  const activeDays = calendarDays.filter(
+    (day) => day.status === 'completed' || day.status === 'not_completed'
+  );
+
+  const progress = activeDays.length
+    ? Math.round((completedDays / activeDays.length) * 100)
+    : 0;
 
   const handleDeleteHabit = () => {
     Alert.alert(
@@ -107,16 +127,12 @@ const HabitsInfoScreen = ({ route, navigation }) => {
           text: 'Eliminar',
           style: 'destructive',
           onPress: () => {
-            deleteHabit(habit.id); // Llama la función para borrar el hábito
-            navigation.goBack(); // Regresa a la pantalla anterior
+            deleteHabit(habit.id);
+            navigation.goBack();
           },
         },
       ]
     );
-  };
-
-  const handleEditHabit = () => {
-    navigation.navigate('AddCheckHabitScreen', { habit, editHabit });
   };
 
   return (
@@ -124,7 +140,12 @@ const HabitsInfoScreen = ({ route, navigation }) => {
       <View style={styles.header}>
         <Text style={styles.title}>{habit.name}</Text>
         <View style={styles.actions}>
-          <TouchableOpacity onPress={handleEditHabit} style={styles.actionButton}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('AddCheckHabitScreen', { habit, editHabit })
+            }
+            style={styles.actionButton}
+          >
             <Ionicons name="pencil" size={24} color="#007AFF" />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleDeleteHabit} style={styles.actionButton}>
@@ -151,6 +172,13 @@ const HabitsInfoScreen = ({ route, navigation }) => {
       </View>
 
       {/* Calendar Days */}
+      <View style={styles.headerRow}>
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+          <Text key={day} style={styles.dayHeader}>
+            {day}
+          </Text>
+        ))}
+      </View>
       <View style={styles.calendar}>
         {calendarDays.map((day, index) => (
           <View
@@ -159,7 +187,6 @@ const HabitsInfoScreen = ({ route, navigation }) => {
               styles.day,
               day.status === 'completed' && styles.completedDay,
               day.status === 'not_completed' && styles.notCompletedDay,
-              day.status === 'inactive' && styles.inactiveDay,
             ]}
           >
             <Text style={styles.dayText}>{day.day}</Text>
@@ -175,8 +202,9 @@ const HabitsInfoScreen = ({ route, navigation }) => {
       </View>
 
       {/* Progress Circle */}
-      <ProgressCircle progress={(completedDays / calendarDays.length) * 100} />
-      <BottomNav />
+      <ProgressCircle progress={progress} />
+
+
     </View>
   );
 };
@@ -188,29 +216,25 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row' },
   actionButton: { marginHorizontal: 10 },
   separator: { height: 1, backgroundColor: '#ddd', marginVertical: 10 },
-  calendarHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  navButton: { fontSize: 20, fontWeight: 'bold', color: '#007AFF' },
+  calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10 },
   month: { fontSize: 18, fontWeight: '600' },
-  calendar: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
+  dayHeader: { width: '14.285%', textAlign: 'center', fontWeight: 'bold', color: '#555' },
+  calendar: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, justifyContent: 'center' },
   day: {
-    width: 30,
-    height: 30,
+    width: '13%',
+    aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 2,
     borderRadius: 15,
+    backgroundColor: '#f5f5f5',
   },
   completedDay: { backgroundColor: 'green' },
   notCompletedDay: { backgroundColor: 'red' },
-  inactiveDay: { backgroundColor: '#ccc' },
-  dayText: { color: '#fff', fontWeight: 'bold' },
+  dayText: { color: '#333', fontWeight: 'bold' },
   statsContainer: { marginTop: 20, alignItems: 'center' },
   stat: { fontSize: 16, marginVertical: 5 },
+  progressText: { textAlign: 'center', marginTop: 10, fontSize: 16, fontWeight: 'bold' },
 });
 
 export default HabitsInfoScreen;

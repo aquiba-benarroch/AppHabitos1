@@ -1,7 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import AddHabitOrReminder from '../components/AddHabitOrReminder';
-
 
 function HabOrRemScreen({ navigation, habits, reminders, addHabit, addReminder, toggleHabitCompletion, handleHabitNameChange }) { 
   return (
@@ -11,7 +9,7 @@ function HabOrRemScreen({ navigation, habits, reminders, addHabit, addReminder, 
       <TouchableOpacity
         style={styles.button}
         onPress={() => {
-          navigation.navigate('TimerOrCheckScreen', {
+          navigation.navigate('AddCheckHabitScreen', {
             onSave: addHabit, // Pasar la función para guardar el hábito
           });
         }}

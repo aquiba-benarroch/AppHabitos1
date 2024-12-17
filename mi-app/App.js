@@ -5,9 +5,7 @@ import HomeScreen from './screens/HomeScreen';
 import HabitsScreen from './screens/HabitsScreen';
 import HabOrRemScreen from './screens/HabOrRemScreen';
 import RemindersScreen from './screens/RemindersScreen';
-import TimerOrCheckScreen from './screens/TimerOrCheckScreen';
 import AddCheckHabitScreen from './screens/AddCheckHabitScreen';
-import AddTimerHabitScreen from './screens/AddTimerHabitScreen';
 import AddRemScreen from './screens/AddRemScreen';
 import HabitsInfoScreen from './screens/HabitsInfoScreen';
 
@@ -194,10 +192,6 @@ function App() {
           )}
         </Stack.Screen>
 
-        <Stack.Screen name="TimerOrCheckScreen">
-          {props => <TimerOrCheckScreen {...props} addHabit={addHabit} />}
-        </Stack.Screen>
-
         <Stack.Screen name="AddCheckHabitScreen">
           {props => {
             const { editingHabit, index } = props.route.params || {}; // Verificar si se está editando un hábito
@@ -241,21 +235,6 @@ function App() {
               />
             );
           }}
-        </Stack.Screen>
-
-
-
-
-        <Stack.Screen name="AddTimerHabitScreen">
-          {props => (
-            <AddTimerHabitScreen
-              {...props}
-              addHabit={(newHabit) => {
-                addHabit(newHabit);
-                props.navigation.navigate('Home');
-              }}
-            />
-          )}
         </Stack.Screen>
 
         <Stack.Screen name="AddRem">
