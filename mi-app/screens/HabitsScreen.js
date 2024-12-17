@@ -5,13 +5,20 @@ import AddButton from '../components/AddButton';
 import BottomNav from '../components/BottomNav';
 import { useNavigation } from '@react-navigation/native';
 
-const HabitsScreen = ({ habits }) => {
+const HabitsScreen = ({ habits, deleteHabit, editHabit }) => {
   const navigation = useNavigation();
 
   const renderHabit = ({ item, index }) => (
     <TouchableOpacity
       style={styles.habitContainer}
-      onPress={() => navigation.navigate('HabitsInfo', { habit: item, index })}
+      onPress={() =>
+        navigation.navigate('HabitsInfo', {
+          habit: item,
+          index,
+          deleteHabit: () => deleteHabit(index), // Pasar la función de eliminar con índice
+          editHabit: (updatedHabit) => editHabit(updatedHabit, index), // Pasar la función de edición con índice
+        })
+      }
     >
       <View style={styles.habitTextContainer}>
         <Text style={styles.habitTitle}>{item.name}</Text>
