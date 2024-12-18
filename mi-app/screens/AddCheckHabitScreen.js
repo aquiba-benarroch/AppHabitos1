@@ -62,6 +62,7 @@ const AddCheckHabitScreen = ({ navigation, addHabit, route, editHabit }) => {
       endDate: endDate.toISOString().split("T")[0],
       completed: editingHabit?.completed || false, // Mantener estado previo si está editando
       completionHistory: editingHabit?.completionHistory || {}, // Mantener historial previo
+      currentStreak: editingHabit?.currentStreak || 0, // Mantener racha previa al editar
     };
   
     if (editingHabit) {

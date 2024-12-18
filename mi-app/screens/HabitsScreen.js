@@ -1,13 +1,55 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import HabitItem from '../components/HabitItem';
 import AddButton from '../components/AddButton';
 import BottomNav from '../components/BottomNav';
 import { useNavigation } from '@react-navigation/native';
 
-const HabitsScreen = ({ habits, deleteHabit, editHabit }) => {
+const HabitsScreen = ({ habits, setHabits, deleteHabit, editHabit }) => {
   const navigation = useNavigation();
 
+  const calculateStreak = (habit) => {
+    let actualStreak = 0;
+    let bestStreak = 0;
+    let currentStreak = 0;
+  
+    const today = new Date().toISOString().split('T')[0];
+    const days = Object.keys(habit.completionHistory || {}).sort(); // Ordenar fechas
+  
+    days.forEach((day) => {
+      if (habit.completionHistory[day]) {
+        currentStreak += 1;
+        if (currentStreak > bestStreak) bestStreak = currentStreak;
+      } else if (day < today) {
+        currentStreak = 0; // Resetear si no está completado en un día anterior
+      }
+    });
+  
+    actualStreak = currentStreak;
+  
+    return actualStreak;
+  };
+  useEffect(() => {
+    const updatedHabits = habits.map((habit) => {
+      const newStreak = calculateStreak(habit);
+  
+      // Solo actualiza si el streak ha cambiado
+      if (habit.currentStreak !== newStreak) {
+        return { ...habit, currentStreak: newStreak };
+      }
+      return habit;
+    });
+  
+    // Verificar si hay algún cambio en los hábitos antes de actualizar el estado
+    const isStateChanged = updatedHabits.some(
+      (updatedHabit, i) => updatedHabit.currentStreak !== habits[i].currentStreak
+    );
+  
+    if (isStateChanged) {
+      setHabits(updatedHabits); // Actualizar el estado global solo si hubo cambios
+    }
+  }, [setHabits]); // Removemos `habits` de las dependencias para evitar bucles  
+    
   const renderHabit = ({ item, index }) => (
     <TouchableOpacity
       style={styles.habitContainer}

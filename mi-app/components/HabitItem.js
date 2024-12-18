@@ -1,12 +1,17 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Usaremos íconos para los checkboxes
 
 const HabitItem = ({ habit, onToggle, selectedDate }) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Resetear hora para comparación exacta
+
   const validSelectedDate =
     selectedDate instanceof Date && !isNaN(selectedDate)
       ? selectedDate
       : new Date();
+
+  validSelectedDate.setHours(0, 0, 0, 0); // Resetear hora para comparación exacta
 
   // Obtener la fecha seleccionada como string en formato "YYYY-MM-DD"
   const selectedDateString = validSelectedDate.toISOString().split('T')[0];
@@ -14,22 +19,41 @@ const HabitItem = ({ habit, onToggle, selectedDate }) => {
   // Determinar si el hábito está completado para la fecha seleccionada
   const isCompleted = habit.completionHistory?.[selectedDateString] || false;
 
+  // Determinar si el día seleccionado es un día futuro (excluye el día actual)
+  const isFutureDay = validSelectedDate > today;
+
   return (
     <View
       style={[
         styles.habitContainer,
-        isCompleted ? styles.completedBackground : styles.incompleteBackground,
+        isCompleted
+          ? styles.completedBackground
+          : isFutureDay
+          ? styles.futureBackground
+          : styles.incompleteBackground,
       ]}
     >
       {/* Checkbox interactivo */}
       <TouchableOpacity
-        onPress={() => onToggle(selectedDateString)} // Asegura que toggle use la fecha seleccionada
+        onPress={() => {
+          if (isFutureDay) {
+            Alert.alert('Bloqueado', 'No puedes completar hábitos de días futuros.');
+          } else {
+            onToggle(selectedDateString);
+          }
+        }}
         style={[
           styles.checkbox,
-          isCompleted ? styles.checkboxCompleted : styles.checkboxIncomplete,
+          isCompleted
+            ? styles.checkboxCompleted
+            : isFutureDay
+            ? styles.checkboxFuture
+            : styles.checkboxIncomplete,
         ]}
+        disabled={isFutureDay} // Deshabilitar interacción para días futuros
       >
         {isCompleted && <Ionicons name="checkmark" size={20} color="#fff" />}
+        {isFutureDay && <Ionicons name="lock-closed" size={20} color="#fff" />}
       </TouchableOpacity>
 
       {/* Nombre y descripción del hábito */}
@@ -63,6 +87,9 @@ const styles = StyleSheet.create({
   incompleteBackground: {
     backgroundColor: '#E9ECEF', // Gris claro para hábitos incompletos
   },
+  futureBackground: {
+    backgroundColor: '#F8F9FA', // Fondo especial para días futuros
+  },
   checkbox: {
     width: 30,
     height: 30,
@@ -76,6 +103,9 @@ const styles = StyleSheet.create({
   },
   checkboxIncomplete: {
     backgroundColor: '#6C757D', // Gris oscuro para incompletos
+  },
+  checkboxFuture: {
+    backgroundColor: '#ADB5BD', // Gris claro para días futuros
   },
   habitDetails: {
     flex: 1,

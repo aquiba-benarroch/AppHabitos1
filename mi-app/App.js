@@ -84,10 +84,10 @@ function App() {
   const editHabit = (updatedHabit, index) => {
     setHabits((prevHabits) => {
       const updatedHabits = [...prevHabits];
-      updatedHabits[index] = updatedHabit; // Reemplazamos sólo el hábito correspondiente
+      updatedHabits[index] = updatedHabit;
       return updatedHabits;
     });
-  };
+  };  
 
   const deleteHabit = (index) => {
     setHabits((prevHabits) => prevHabits.filter((_, i) => i !== index));
@@ -167,7 +167,9 @@ function App() {
             <HabitsScreen
               {...props}
               habits={habits}
+              setHabits={setHabits}
               deleteHabit={deleteHabit}
+              editHabit={editHabit}
             />
           )}
         </Stack.Screen>

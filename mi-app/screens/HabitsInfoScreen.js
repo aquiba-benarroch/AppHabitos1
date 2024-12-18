@@ -84,10 +84,19 @@ const HabitsInfoScreen = ({ route, navigation }) => {
     );
   
     setCalendarDays([...emptyDaysBefore, ...days, ...emptyDaysAfter]);
+  
   }, [habit, selectedMonth]);
-  
-  
 
+  useEffect(() => {
+    // Calcular el streak cuando los días del calendario se actualizan
+    const streakStats = getStreakStats();
+  
+    // Solo actualiza si el streak ha cambiado
+    if (habit.currentStreak !== streakStats.actualStreak) {
+      editHabit({ ...habit, currentStreak: streakStats.actualStreak }, index);
+    }
+  }, [calendarDays]); // Solo depende de calendarDays
+  
   const handlePreviousMonth = () => {
     setSelectedMonth(
       new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - 1, 1)
@@ -105,7 +114,7 @@ const HabitsInfoScreen = ({ route, navigation }) => {
     let actualStreak = 0;
     let bestStreak = 0;
     let currentStreak = 0;
-
+  
     calendarDays.forEach((day) => {
       if (day.status === 'completed') {
         currentStreak += 1;
@@ -114,16 +123,16 @@ const HabitsInfoScreen = ({ route, navigation }) => {
         currentStreak = 0;
       }
     });
-
+  
     actualStreak = currentStreak;
-
+  
     return {
-      completedDays: calendarDays.filter((day) => day.status === 'completed')
-        .length,
+      completedDays: calendarDays.filter((day) => day.status === 'completed').length,
       actualStreak,
       bestStreak,
     };
   };
+  
 
   const { completedDays, actualStreak, bestStreak } = getStreakStats();
 

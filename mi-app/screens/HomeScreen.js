@@ -147,7 +147,7 @@ function HomeScreen({ navigation, route, habits: globalHabits, setHabits,reminde
           selectedDate={selectedDate} // Pasar la fecha seleccionada
         />
         ) : (
-          <Text style={styles.noHabitsText}>
+          <Text style={styles.noDataText}>
             No hay hábitos programados para este día.
           </Text>
         )}
