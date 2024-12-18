@@ -32,9 +32,17 @@ const AddCheckHabitScreen = ({ navigation, addHabit, route, editHabit }) => {
 
   const toggleDay = (day) => {
     setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+      prev.includes(day)
+        ? prev.filter((d) => d !== day) // Si ya está, lo quitamos
+        : [...prev, day] // Si no está, lo agregamos
     );
   };
+  
+  useEffect(() => {
+    if (editingHabit) {
+      setSelectedDays([...editingHabit.days]); // Aseguramos que se carguen los días previos correctamente
+    }
+  }, [editingHabit]);
 
   const handleSaveHabit = () => {
     if (!habitName.trim()) {
@@ -45,23 +53,23 @@ const AddCheckHabitScreen = ({ navigation, addHabit, route, editHabit }) => {
       Alert.alert("Error", "Debes seleccionar al menos un día.");
       return;
     }
-
+  
     const updatedHabit = {
       name: habitName,
       description,
-      days: selectedDays.map((day) => day.toLowerCase()), // Convertir a minúsculas
+      days: selectedDays, // Guardamos los días seleccionados correctamente
       startDate: startDate.toISOString().split("T")[0],
       endDate: endDate.toISOString().split("T")[0],
-      completed: editingHabit?.completed || false, // Mantener el estado previo si está editando
-      completionHistory: editingHabit?.completionHistory || {}, // Mantener el historial previo
+      completed: editingHabit?.completed || false, // Mantener estado previo si está editando
+      completionHistory: editingHabit?.completionHistory || {}, // Mantener historial previo
     };
-
+  
     if (editingHabit) {
       editHabit(updatedHabit, habitIndex); // Editar hábito existente
     } else {
       addHabit(updatedHabit); // Agregar nuevo hábito
     }
-
+  
     navigation.navigate("Home", { showToday: true });
   };
 
@@ -90,14 +98,14 @@ const AddCheckHabitScreen = ({ navigation, addHabit, route, editHabit }) => {
             key={day}
             style={[
               styles.dayButton,
-              selectedDays.includes(day) && styles.dayButtonSelected,
+              selectedDays.includes(day) && styles.dayButtonSelected, // Estilo si está seleccionado
             ]}
-            onPress={() => toggleDay(day)}
+            onPress={() => toggleDay(day)} // Cambia el estado al hacer clic
           >
             <Text
               style={[
                 styles.dayButtonText,
-                selectedDays.includes(day) && styles.dayButtonTextSelected,
+                selectedDays.includes(day) && styles.dayButtonTextSelected, // Texto resaltado si está seleccionado
               ]}
             >
               {day}

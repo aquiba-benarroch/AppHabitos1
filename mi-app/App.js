@@ -84,7 +84,7 @@ function App() {
   const editHabit = (updatedHabit, index) => {
     setHabits((prevHabits) => {
       const updatedHabits = [...prevHabits];
-      updatedHabits[index] = updatedHabit;
+      updatedHabits[index] = updatedHabit; // Reemplazamos sólo el hábito correspondiente
       return updatedHabits;
     });
   };
