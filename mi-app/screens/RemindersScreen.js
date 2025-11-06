@@ -81,26 +81,36 @@ function RemindersScreen({ reminders, deleteReminder }) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  header: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#ddd' },
-  headerTitle: { fontSize: 24, fontWeight: 'bold' },
+  header: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    backgroundColor: '#f8f8f8',
+    justifyContent: 'flex-end', // Esto ayuda a mover el contenido hacia la parte inferior si es necesario
+  },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginTop: 25 },
+  divider: {
+    height: 1,
+    backgroundColor: '#ddd',
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
   taskContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 10,  // Agregar espacio vertical
+    paddingLeft: 15,  // Añadir espacio a la izquierda
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
     justifyContent: 'space-between',
   },
-  deleteButton: { padding: 5 },
-  taskContent: { flex: 1 },
+  deleteButton: { padding: 5, paddingRight: 15 }, 
+  taskContent: { flex: 1, paddingLeft: 10 }, // Agregar un poco de espacio dentro del contenido
   hour: { fontSize: 18, marginRight: 16, fontWeight: 'bold', color: '#333' },
   taskTitle: { fontSize: 16, fontWeight: 'bold' },
   taskDays: { fontSize: 14, color: '#666' },
   taskDate: { fontSize: 14, color: '#666' },
   noTasks: { textAlign: 'center', marginTop: 16, fontSize: 16, color: '#666' },
 });
-
-export default RemindersScreen;

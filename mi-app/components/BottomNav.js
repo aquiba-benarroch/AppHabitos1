@@ -14,7 +14,7 @@ function BottomNav() {
         onPress={() => navigation.navigate('Home')}
       >
         <Ionicons name="calendar" size={24} color="black" />
-        <Text style={styles.navLabel}>Today</Text>
+        <Text style={styles.navLabel}>Hoy</Text>
       </TouchableOpacity>
 
       {/* Botón para ir a la pantalla de Hábitos */}
@@ -23,7 +23,7 @@ function BottomNav() {
         onPress={() => navigation.navigate('Habits')}
       >
         <Ionicons name="star" size={24} color="black" />
-        <Text style={styles.navLabel}>Habits</Text>
+        <Text style={styles.navLabel}>Habitos</Text>
       </TouchableOpacity>
 
       {/* Botón para ir a la pantalla de Planificador del Día (RemindersScreen) */}
@@ -32,7 +32,7 @@ function BottomNav() {
         onPress={() => navigation.navigate('Reminders')}
       >
         <Ionicons name="time" size={24} color="black" />
-        <Text style={styles.navLabel}>Day Planner</Text>
+        <Text style={styles.navLabel}>Recordatorios</Text>
       </TouchableOpacity>
     </View>
   );
@@ -41,7 +41,8 @@ function BottomNav() {
 const styles = StyleSheet.create({
   bottomNav: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center', // Cambié esto para centrar los elementos
+    alignItems: 'center', // Esto asegura que los elementos estén alineados verticalmente
     paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: '#ddd',
@@ -51,7 +52,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   navItem: {
+    flex: 1, // Hace que los elementos ocupen espacio proporcionalmente
     alignItems: 'center',
+    justifyContent: 'center', // Centra los elementos dentro de cada navItem
   },
   navLabel: {
     fontSize: 12,
