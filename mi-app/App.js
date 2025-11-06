@@ -9,6 +9,9 @@ import AddCheckHabitScreen from './screens/AddCheckHabitScreen';
 import AddRemScreen from './screens/AddRemScreen';
 import HabitsInfoScreen from './screens/HabitsInfoScreen';
 
+// Importa las funciones del backend
+import { fetchHabits } from '../src/api/habits.ts';
+
 const Stack = createStackNavigator();
 
 function App() {
@@ -35,31 +38,45 @@ function App() {
   useEffect(() => {
     const initializeProgressAndCheckNewDay = async () => {
       await initializeDailyProgress(); // Ejecutar al iniciar la app
-  
+
       const checkNewDay = setInterval(async () => {
         const currentDate = new Date().toISOString().split("T")[0];
         const lastUpdateDate = await AsyncStorage.getItem("lastUpdateDate");
-  
+
         if (lastUpdateDate !== currentDate) {
           await initializeDailyProgress();
           await AsyncStorage.setItem("lastUpdateDate", currentDate); // Actualizar la fecha de última verificación
         }
       }, 60 * 1000); // Cada minuto
-  
+
       return () => clearInterval(checkNewDay); // Limpiar el intervalo al desmontar
     };
-  
+
     initializeProgressAndCheckNewDay();
   }, []);
 
-  const addHabit = (newHabit) => {
-    setHabits([
-      ...habits,
-      {
-        ...newHabit,
-        completionHistory: {}, // Inicializar el historial vacío
-      },
-    ]);
+  // Modificación: Cargar hábitos desde el backend al iniciar la app
+  useEffect(() => {
+    const loadHabitsFromBackend = async () => {
+      try {
+        const habitsFromBackend = await fetchHabits(); // Llama a la API para obtener los hábitos
+        setHabits(habitsFromBackend); // Actualiza el estado con los hábitos obtenidos
+      } catch (error) {
+        console.error('Error al cargar hábitos del backend:', error);
+      }
+    };
+
+    loadHabitsFromBackend();
+  }, []);
+
+  // Modificación: Agregar un hábito al backend
+  const addHabit = async (newHabit) => {
+    try {
+      const createdHabit = await createHabit(newHabit); // Llama a la API para crear el hábito
+      setHabits((prevHabits) => [...prevHabits, createdHabit]); // Actualiza el estado local con el nuevo hábito
+    } catch (error) {
+      console.error('Error al agregar hábito:', error);
+    }
   };
 
   const toggleHabitCompletion = (habitIndex) => {

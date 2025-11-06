@@ -11,11 +11,26 @@ import HabitList from '../components/HabitList';
 import BottomNav from '../components/BottomNav';
 import AddButton from '../components/AddButton';
 import CalendarBar from '../components/CalendarBar';
+import { fetchHabits } from '../api/habits'; // Importa fetchHabits
 
-function HomeScreen({ navigation, route, habits: globalHabits, setHabits,reminders: globalReminders }) {
+function HomeScreen({ navigation, route, habits: globalHabits, setHabits, reminders: globalReminders }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filteredHabits, setFilteredHabits] = useState([]);
   const [filteredReminders, setFilteredReminders] = useState([]);
+
+  // **Nuevo: Cargar hábitos desde el backend al montar el componente**
+  useEffect(() => {
+    const loadHabitsFromBackend = async () => {
+      try {
+        const habitsFromBackend = await fetchHabits(); // Llama a la API
+        setHabits(habitsFromBackend); // Actualiza los hábitos globales con los datos del backend
+      } catch (error) {
+        console.error('Error al cargar hábitos del backend:', error);
+      }
+    };
+
+    loadHabitsFromBackend();
+  }, []); // Este efecto se ejecuta solo una vez al montar el componente
 
   // Actualiza los hábitos filtrados cada vez que cambien los hábitos globales o la fecha seleccionada
   useEffect(() => {
@@ -26,21 +41,20 @@ function HomeScreen({ navigation, route, habits: globalHabits, setHabits,reminde
         const habitStartDate = new Date(habit.startDate);
         const habitEndDate = new Date(habit.endDate);
         habitEndDate.setHours(23, 59, 59, 999);
-  
+
         const isWithinDateRange =
           selectedDate >= habitStartDate && selectedDate <= habitEndDate;
-  
+
         const isMatchingDay = habit.days
           ?.map((day) => day.toLowerCase())
           .includes(dayName);
-  
+
         return isWithinDateRange && isMatchingDay;
       });
-  
+
     setFilteredHabits(habitsForSelectedDay);
   }, [globalHabits, selectedDate]);
-  
-  
+
   useEffect(() => {
     const remindersForSelectedDay = (globalReminders || []).filter((reminder) => {
       const dayName = selectedDate.toLocaleString('es-ES', { weekday: 'long' }).toLowerCase();
@@ -48,37 +62,37 @@ function HomeScreen({ navigation, route, habits: globalHabits, setHabits,reminde
       const matchesDate = reminder.selectedDate
         ? new Date(reminder.selectedDate).toDateString() === selectedDate.toDateString()
         : false;
-  
+
       return matchesDay || matchesDate;
     });
     setFilteredReminders(remindersForSelectedDay);
   }, [globalReminders, selectedDate]);
-  
+
   // Reinicia los hábitos al inicio del día
-    useEffect(() => {
-      const todayString = new Date().toISOString().split('T')[0];
-  
-      const updatedHabits = globalHabits.map((habit) => {
-        if (habit.lastUpdated !== todayString) {
-          return {
-            ...habit,
-            completionHistory: {
-              ...habit.completionHistory,
-              [todayString]: false, // Reinicia el estado de completado
-            },
-            lastUpdated: todayString,
-          };
-        }
-        return habit;
-      });
-  
-      setHabits(updatedHabits);
-    }, [selectedDate]);
+  useEffect(() => {
+    const todayString = new Date().toISOString().split('T')[0];
+
+    const updatedHabits = globalHabits.map((habit) => {
+      if (habit.lastUpdated !== todayString) {
+        return {
+          ...habit,
+          completionHistory: {
+            ...habit.completionHistory,
+            [todayString]: false, // Reinicia el estado de completado
+          },
+          lastUpdated: todayString,
+        };
+      }
+      return habit;
+    });
+
+    setHabits(updatedHabits);
+  }, [selectedDate]);
 
   // Alternar el estado de completado de un hábito para la fecha seleccionada
   const toggleHabitCompletion = (habitIndex) => {
     const selectedDateString = selectedDate.toISOString().split('T')[0]; // Fecha seleccionada como string
-  
+
     setHabits((prevHabits) =>
       prevHabits.map((habit, index) => {
         if (index === habitIndex) {
@@ -87,7 +101,7 @@ function HomeScreen({ navigation, route, habits: globalHabits, setHabits,reminde
             ...habit.completionHistory,
             [selectedDateString]: !habit.completionHistory?.[selectedDateString],
           };
-  
+
           return {
             ...habit,
             completionHistory: updatedCompletionHistory,
@@ -96,23 +110,22 @@ function HomeScreen({ navigation, route, habits: globalHabits, setHabits,reminde
         return habit;
       })
     );
-  };  
+  };
 
   const renderHabitItem = ({ item, index }) => {
     const selectedDateString = selectedDate.toISOString().split('T')[0];
     const isCompleted = item.completionHistory?.[selectedDateString] || false; // Obtener el estado de completado para el día seleccionado
 
     return (
-        <View style={styles.habitContainer}>
-            <Text style={styles.habitName}>{item.name}</Text>
-            <Switch
-                value={isCompleted} // Estado del switch basado en el historial
-                onValueChange={() => toggleHabitCompletion(index)} // Alternar el estado al cambiar el switch
-            />
-        </View>
+      <View style={styles.habitContainer}>
+        <Text style={styles.habitName}>{item.name}</Text>
+        <Switch
+          value={isCompleted} // Estado del switch basado en el historial
+          onValueChange={() => toggleHabitCompletion(index)} // Alternar el estado al cambiar el switch
+        />
+      </View>
     );
   };
-
 
   // Calcular el porcentaje de hábitos completados
   const getCompletionPercentage = () => {
@@ -126,37 +139,26 @@ function HomeScreen({ navigation, route, habits: globalHabits, setHabits,reminde
 
   return (
     <View style={styles.container}>
-      {/* Barra de días reemplazada por el componente CalendarBar */}
       <CalendarBar selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
-
-      {/* Progreso del día */}
       <View style={styles.progressContainer}>
         <Text style={styles.sectionTitle}>Hábitos del día completados</Text>
         <ProgressCircle progress={getCompletionPercentage()} />
       </View>
-
-      {/* Lista de hábitos */}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
-      >
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
         {filteredHabits.length > 0 ? (
           <HabitList
-          habits={filteredHabits}
-          onToggleCompletion={(index) => toggleHabitCompletion(index)}
-          selectedDate={selectedDate} // Pasar la fecha seleccionada
-        />
+            habits={filteredHabits}
+            onToggleCompletion={(index) => toggleHabitCompletion(index)}
+            selectedDate={selectedDate} // Pasar la fecha seleccionada
+          />
         ) : (
           <Text style={styles.noDataText}>
             No hay hábitos programados para este día.
           </Text>
         )}
       </ScrollView>
-      
       <Text style={styles.sectionTitle}>Recordatorios</Text>
-
-      {/* Lista de recordatorios */}
-      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollViewContent, { paddingBottom: 65 }]}>
+      <ScrollView style={styles.scrollView}>
         {filteredReminders.length > 0 ? (
           filteredReminders.map((reminder, index) => (
             <View key={index} style={styles.reminderContainer}>
@@ -167,13 +169,12 @@ function HomeScreen({ navigation, route, habits: globalHabits, setHabits,reminde
             </View>
           ))
         ) : (
-          <Text style={styles.noDataText}>No hay recordatorios programados para este día.</Text>
+          <Text style={styles.noDataText}>
+            No hay recordatorios programados para este día.
+          </Text>
         )}
       </ScrollView>
-
-      {/* Botón para agregar */}
       <AddButton onPress={() => navigation.navigate('HabOrRem')} />
-
       <BottomNav />
     </View>
   );
